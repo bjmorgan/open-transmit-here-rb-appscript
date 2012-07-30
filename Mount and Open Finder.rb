@@ -31,4 +31,4 @@ window.toolbar_visible.set(false)
 window.current_view.set(:list_view)
 window.list_view_options.sort_column.set(:modification_date_column)
 
-window.target.set(MacTypes::Alias.path("/Volumes/#{host}/#{folder}"))
+window.target.set( MacTypes::Alias.path( "/Volumes/#{host}/#{folder}" ) )
