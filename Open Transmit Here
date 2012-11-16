@@ -14,9 +14,10 @@ host = /@([A-Za-z]*)/.match( window_title )[1] # match e.g. host
 path = /\:([^^]*)/.match( window_title )[1]    # match e.g. ~/Files/subdir1/subdir2
 
 transmit.activate
+transmit.make( :new => :document ) if transmit.documents.get.empty?
 tab = transmit.documents[0].current_tab
 current_remote_machine = ( tab.remote_browser.get == :missing_value ) ? nil : tab.remote_browser.address.get.split('.')[0]
-if ( current_remote_machine != host ) then 
+unless ( host == current_remote_machine ) then 
   unless ( current_remote_machine.nil? ) then
     transmit.make( :new => :document )
     tab = transmit.documents[-1].current_tab
