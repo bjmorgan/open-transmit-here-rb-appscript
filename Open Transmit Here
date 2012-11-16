@@ -1,4 +1,4 @@
-#!/opt/local/bin/ruby
+#!/usr/local/bin/ruby
 # November 9, 2011
 # Script to extract server name and current path from a Terminal window, and open the same directory in Transmit
 
@@ -14,9 +14,14 @@ host = /@([A-Za-z]*)/.match( window_title )[1] # match e.g. host
 path = /\:([^^]*)/.match( window_title )[1]    # match e.g. ~/Files/subdir1/subdir2
 
 transmit.activate
-transmit.make( :new => :document )
 tab = transmit.documents[0].current_tab
-
-my_fave = transmit.favorites[ whose.name.eq( host ) ].items[1].get
-tab.connect( :to => my_fave )
+current_remote_machine = ( tab.remote_browser.get == :missing_value ) ? nil : tab.remote_browser.address.get.split('.')[0]
+if ( current_remote_machine != host ) then 
+  unless ( current_remote_machine.nil? ) then
+    transmit.make( :new => :document )
+    tab = transmit.documents[-1].current_tab
+  end
+  my_fave = transmit.favorites[ whose.name.eq( host ) ].items[1].get
+  tab.connect( :to => my_fave )
+end
 tab.remote_browser.change_location( :to_path => path )

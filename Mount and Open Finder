@@ -1,0 +1,48 @@
+#!/usr/local/bin/ruby
+# November 9, 2011
+# Extract server name and current path from a Terminal window, and open the same directory in a mounted volume, using Transmit
+# Checks whether the remote server is already mounted, and if so skips remounting (14/11/12)
+
+require 'appscript'
+
+$RUBY_DIR = '/Users/ben/Documents/Code/rb-appscript'
+
+def app_module( id )
+  require "#{$RUBY_DIR}/sdefToRBAppscriptModule.rb"
+  f = FindApp.by_id(id)
+  return SDEFParser.makeModule(f)
+end
+
+terminal = Appscript.app("/Applications/Utilities/Terminal.app")
+transmit = Appscript.app("/Applications/Transmit.app")
+finder = Appscript.app("Finder", app_module('com.apple.finder'))
+whose = Appscript.its
+
+window_title = terminal.windows[0].tabs[1].custom_title.get # e.g. user@host:~/Files/subdir1/subdir2
+host = /@([A-Za-z]*)/.match( window_title )[1] # match e.g. host
+path = /\:([^^]*)/.match( window_title )[1]    # match e.g. ~/Files/subdir1/subdir2
+
+mounted_disks = finder.disks.name.get
+
+unless mounted_disks.include?( host ) then
+  transmit.activate
+  transmit.make( :new => :document ) if transmit.documents.get.empty?
+  tab = transmit.documents[0].current_tab
+  abort( "#{host} is not a favorite in Transmit" ) unless transmit.favorites.name.get.include?( host )
+  my_fave = transmit.favorites[ whose.name.eq( host ) ].items[1].get
+  tab.connect( :to => my_fave, :mount => true )
+  tab.close
+end
+
+folder = path.sub( '~' , '' ).sub( /\/\Z/, '' )
+
+finder.make( :new => :Finder_window )
+window = finder.windows[1]
+
+# set view options for target window
+window.toolbar_visible.set(true) 
+window.current_view.set(:column_view)
+window.list_view_options.sort_column.set(:modification_date_column)
+
+window.target.set( MacTypes::Alias.path( "/Volumes/#{host}/#{folder}" ) )
+finder.activate
