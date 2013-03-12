@@ -10,11 +10,18 @@ whose = Appscript.its
 
 window_title = terminal.windows[0].tabs[1].custom_title.get # e.g. user@host:~/Files/subdir1/subdir2
 
+p window_title
 host = /@([A-Za-z]*)/.match( window_title )[1] # match e.g. host
 path = /\:([^^]*)/.match( window_title )[1]    # match e.g. ~/Files/subdir1/subdir2
 
 transmit.activate
-transmit.make( :new => :document ) if transmit.documents.get.empty?
+
+if transmit.documents.get.empty?
+  transmit.make( :new => :document ) 
+else
+  transmit.refresh(nil)
+end
+
 tab = transmit.documents[0].current_tab
 current_remote_machine = ( tab.remote_browser.get == :missing_value ) ? nil : tab.remote_browser.address.get.split('.')[0]
 unless ( host == current_remote_machine ) then 
@@ -25,4 +32,5 @@ unless ( host == current_remote_machine ) then
   my_fave = transmit.favorites[ whose.name.eq( host ) ].items[1].get
   tab.connect( :to => my_fave )
 end
+p path
 tab.remote_browser.change_location( :to_path => path )
